@@ -17,78 +17,84 @@
 
     <v-card-title>Nuevo Mensaje</v-card-title>
     <v-card-text>
-      <v-row>
-        <v-col cols="12" sm="4" md="3">
-          <v-autocomplete
-            v-model="colombia"
-            label="Prefijo"
-            :items="codes"
-            :filter="customFilter"
-            solo
-            dense
-          >
-            <template v-slot:selection="data">
-              <v-list-item-icon>
-                <v-icon>mdi-flag</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content
-                v-text="data.item.PHONE_CODE"
-              ></v-list-item-content>
-            </template>
+      <v-form ref="formNumber" v-model="validNumber" lazy-validation>
+        <v-row no-gutters>
+          <v-col cols="12" sm="4" md="3">
+            <v-autocomplete
+              v-model="colombia"
+              label="Prefijo"
+              :items="codes"
+              :filter="customFilter"
+              solo
+              dense
+            >
+              <template v-slot:selection="data">
+                <v-list-item-icon>
+                  <v-icon>mdi-flag</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content
+                  v-text="data.item.PHONE_CODE"
+                ></v-list-item-content>
+              </template>
 
-            <template v-slot:item="data">
-              <v-list-item-icon>
-                <v-icon>mdi-flag</v-icon>
-              </v-list-item-icon>
-              <v-list-item-content
-                v-text="data.item.ESPAÑOL"
-              ></v-list-item-content>
-            </template>
-          </v-autocomplete>
-        </v-col>
+              <template v-slot:item="data">
+                <v-list-item-icon>
+                  <v-icon>mdi-flag</v-icon>
+                </v-list-item-icon>
+                <v-list-item-content
+                  v-text="data.item.ESPAÑOL"
+                ></v-list-item-content>
+              </template>
+            </v-autocomplete>
+          </v-col>
 
-        <v-col cols="12" sm="7" md="8">
-          <v-text-field
-            v-model="celular"
-            label="Numero"
-            clearable
-            counter
-            maxlength="10"
-            :rules="[rules.required, rules.min, rules.max]"
-            type="number"
-          ></v-text-field>
-        </v-col>
+          <v-col cols="12" sm="7" md="8" >
+            <v-text-field
+              v-model="celular"
+              label="Numero"
+              clearable
+              counter
+              maxlength="10"
+              :rules="[rules.required, rules.min, rules.max]"
+              type="number"
+              class="mx-2"
+            ></v-text-field>
+          </v-col>
 
-        <v-col cols="1">
-          <v-btn icon color="primary" @click="addNumber">
-            <v-icon>mdi-plus</v-icon>
-          </v-btn>
-        </v-col>
-      </v-row>
+          <v-col cols="1">
+            <v-btn color="primary" @click="addNumber" small class="ma-0 px-1">
+              <span>Agregar</span>
+              <v-icon>mdi-plus</v-icon>
+            </v-btn>
+          </v-col>
+        </v-row>
+      </v-form>
 
-      <v-row>
-        <v-col>
-          <v-chip
-            v-for="(item, n) in numeros"
-            :key="n"
-            close
-            @click:close="removeNumber"
-            v-text="item"
-          ></v-chip>
-        </v-col>
-      </v-row>
+      <v-form ref="formMessage" v-model="validMessage" lazy-validation>
+        <v-row>
+          <v-col>
+            <v-chip
+              v-for="(item, n) in numeros"
+              :key="n"
+              close
+              @click:close="removeNumber"
+              v-text="item"
+            ></v-chip>
+          </v-col>
+        </v-row>
 
-      <v-row>
-        <v-col cols="12">
-          <v-textarea
-            v-model="mesage"
-            counter
-            label="Text"
-            :rules="[rules.required, rules.counter]"
-            clearable
-          ></v-textarea>
-        </v-col>
-      </v-row>
+        <v-row>
+          <v-col cols="12">
+            <v-textarea
+              v-model="message"
+              counter
+              label="Mensaje"
+              :rules="[rules.required, rules.counter]"
+              clearable
+            ></v-textarea>
+          </v-col>
+        </v-row>
+      </v-form>
     </v-card-text>
 
     <v-card-actions>
@@ -109,6 +115,8 @@ export default {
 
   data: () => ({
     loading: false,
+    validNumber: true,
+    validMessage: true,
     colombia: {
       ESPAÑOL: "Colombia",
       ENGLISH: "Colombia",
@@ -117,7 +125,7 @@ export default {
       PHONE_CODE: 57
     },
     celular: "",
-    mesage: "",
+    message: "",
     numeros: [],
     rules: {
       required: value => !!value || "Required.",
@@ -141,19 +149,28 @@ export default {
       );
     },
 
-    async send() {
-      let payload = {
-        mensaje: this.mesage,
-        movil: "57" + this.celular,
-        identificadorcliente: "Codigo A123"
+    send() {
+      let s = (message, movil) => {
+        let payload = {
+          mensaje: message,
+          movil: "57" + movil,
+          identificadorcliente: "Codigo A123"
+        };
+
+        this.sendSMS(payload);
       };
 
-      this.sendSMS(payload);
+      if(this.numeros.length > 0 && this.$refs.formMessage.validate())
+        this.numeros.forEach((e) => {
+          s(this.message, e);
+        });
+      else if(this.$refs.formNumber.validate() && this.$refs.formMessage.validate()) s(this.message, this.celular);
     },
     addNumber() {
-      if (this.celular !== "" && this.celular.length == 10) {
+      if (this.$refs.formNumber.validate()) {
         this.numeros.push(this.celular);
         this.celular = "";
+        this.$refs.formNumber.resetValidation();
       }
     },
     removeNumber(pos) {
