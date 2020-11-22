@@ -48,7 +48,7 @@
             </v-autocomplete>
           </v-col>
 
-          <v-col cols="12" sm="7" md="8" >
+          <v-col cols="12" sm="7" md="8">
             <v-text-field
               v-model="celular"
               label="Numero"
@@ -160,11 +160,23 @@ export default {
         this.sendSMS(payload);
       };
 
-      if(this.numeros.length > 0 && this.$refs.formMessage.validate())
-        this.numeros.forEach((e) => {
+      if (this.numeros.length > 0 && this.$refs.formMessage.validate()) {
+        this.numeros.forEach(e => {
           s(this.message, e);
         });
-      else if(this.$refs.formNumber.validate() && this.$refs.formMessage.validate()) s(this.message, this.celular);
+        this.numeros = [];
+        this.message = "";
+        this.$refs.formMessage.resetValidation();
+      } else if (
+        this.$refs.formNumber.validate() &&
+        this.$refs.formMessage.validate()
+      ) {
+        s(this.message, this.celular);
+        this.message = "";
+        this.celular = "";
+        this.$refs.formMessage.resetValidation();
+        this.$refs.formNumber.resetValidation();
+      }
     },
     addNumber() {
       if (this.$refs.formNumber.validate()) {
