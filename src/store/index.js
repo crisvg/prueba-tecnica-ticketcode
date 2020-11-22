@@ -1762,7 +1762,8 @@ export default new Vuex.Store({
         ISO3: "ZWE",
         PHONE_CODE: 263
       }
-    ]
+    ],
+    lista: []
   },
   mutations: {},
   actions: {
@@ -1775,6 +1776,24 @@ export default new Vuex.Store({
           }
         })
         .then(function(response) {
+          console.log("Authenticated", response);
+        })
+        .catch(function(error) {
+          console.log("Error on Authentication", error);
+        });
+    },
+    async listSMS(inicio, final) {
+      await axios
+        .get(
+          "https://apisms.celmedia.com.co/api_getmosms/" + inicio + "/" + final,
+          {
+            headers: {
+              Authorization: basicAuth,
+              "api-key": "KH$aUA1AASDqBf9n$oxV2A451Ou$0n4"
+            }
+          }
+        )
+        .then(response => {
           console.log("Authenticated", response);
         })
         .catch(function(error) {
